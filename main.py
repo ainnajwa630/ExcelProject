@@ -126,8 +126,9 @@ for item in old_directory_file:
 
                 ## Check all rows (entire) that are empty within worksheet, added restricted end_col
                 end_col = 40
-                for row in range(ws.max_row, 0,-1):
-                    if all([cell.value is None for cell in ws[row][1:end_col+1]]):
+                for row in range(ws.max_row+1, 0,-1):
+                    # print(row," ",[cell.value for cell in ws[row][0:ws.max_column]])
+                    if all([cell.value is None for cell in ws[row][0:end_col+1]]):
                         if row > location_list[0]:
                             empty_row_list.append(row)
                             empty_row_list.sort(reverse=False)
@@ -167,16 +168,17 @@ for item in old_directory_file:
 
                 ## Outer loop that ensure that all data buckets list are iterated upon
                 for i,j in zip(range(len(location_list)),range(len(empty_row_list))):
+                    ## Ensure no data bucket is lesser than one another
+                    if empty_row_list[j] < location_list[i]:
+                       empty_row_list.pop(j)
 
                     ## The range of data bucket that is currently being worked on
-                    print("\n",range(location_list[i], empty_row_list[j]))
+                    print("\n", range(location_list[i], empty_row_list[j]))
                     ## Inner loop that focuses on extracting data into specified list, iterating through all rows, columns in order to get value, use dynamic data range based on row,col lists
                     data = [[ws.cell(r, c).value for c in range(1, zero_index)] for r in range(location_list[i], empty_row_list[j])]
 
 
                     ## Find the percentage of "None" (No value) from data ##
-                    print(sum(item.count(None) for item in data))
-                    print(sum(len(items) for items in data))
                     if sum(len(items) for items in data) != 0:
                         null_percentage = (sum(item.count(None) for item in data) / (sum(len(items) for items in data))*100.0)
                         # print("Percentage of No Value data: ",round(null_percentage,0), "%") ## to help developer understand
@@ -220,5 +222,6 @@ for item in old_directory_file:
 
         # Move to the next file
         counter += 1
+        # break
 
         print("\n============================================================")
