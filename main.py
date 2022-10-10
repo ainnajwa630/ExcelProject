@@ -158,62 +158,53 @@ for item in old_directory_file:
                 j = 0
                 zero_index = final_empty_col_list[0]
 
-                ## Create a new workbook that will resides in C Directory, using Openpyxl as the ExcelWriter
+                ## Create a new workbook that will resides in New Directory, using Openpyxl as the ExcelWriter
                 today = datetime.date.today()
                 year = today.strftime("%Y")
-                for item in range(len(old_directory_file)):
-                    new_file = year+"_"+old_directory_file[item]
-                    create_new_sheet_name = str(new_directory_path + "\\" + new_file)
-                    print("\nGenerating New File: ",create_new_sheet_name)
-                    # new_workbook = op.load_workbook(create_new_sheet_name, read_only=False)
-                    new_worbook = op.workbook.Workbook()
-                    writer = pd.ExcelWriter(create_new_sheet_name, engine='openpyxl')
+                new_file = year+"_"+old_directory_file[counter]
+                create_new_sheet_name = str(new_directory_path + "\\" + new_file)
+                print("\nGenerating New File: ",create_new_sheet_name)
+                writer = pd.ExcelWriter(create_new_sheet_name, mode='a', engine='openpyxl', if_sheet_exists='overlay')
 
 
 
 
-                    ## Outer loop that ensure that all data buckets list are iterated upon
-                    for i,j in zip(range(len(location_list)),range(len(empty_row_list))):
-                        ## Ensure no data bucket is lesser than one another
-                        if empty_row_list[j] < location_list[i]:
-                           empty_row_list.pop(j)
 
-                        ## The range of data bucket that is currently being worked on
-                        print("\n", range(location_list[i], empty_row_list[j]))
-                        ## Inner loop that focuses on extracting data into specified list, iterating through all rows, columns in order to get value, use dynamic data range based on row,col lists
-                        data = [[ws.cell(r, c).value for c in range(1, zero_index)] for r in range(location_list[i], empty_row_list[j])]
+                ## Outer loop that ensure that all data buckets list are iterated upon
+                for i,j in zip(range(len(location_list)),range(len(empty_row_list))):
 
+                    ## Ensure no data bucket is lesser than one another
+                    if empty_row_list[j] < location_list[i]:
+                       empty_row_list.pop(j)
 
-                        ## Find the percentage of "None" (No value) from data ##
-                        if sum(len(items) for items in data) != 0:
-                            null_percentage = (sum(item.count(None) for item in data) / (sum(len(items) for items in data))*100.0)
-                            # print("Percentage of No Value data: ",round(null_percentage,0), "%") ## to help developer understand
-                        else:
-                            continue
+                    ## The range of data bucket that is currently being worked on
+                    print("\n", range(location_list[i], empty_row_list[j]))
+                    ## Inner loop that focuses on extracting data into specified list, iterating through all rows, columns in order to get value, use dynamic data range based on row,col lists
+                    data = [[ws.cell(r, c).value for c in range(1, zero_index)] for r in range(location_list[i], empty_row_list[j])]
 
 
-                        ## Converion to dataframe
-                        if round(null_percentage,0) <= 50:
-                            df = pd.DataFrame(data)
+                    ## Find the percentage of "None" (No value) from data ##
+                    if sum(len(items) for items in data) != 0:
+                        null_percentage = (sum(item.count(None) for item in data) / (sum(len(items) for items in data))*100.0)
+                        # print("Percentage of No Value data: ",round(null_percentage,0), "%") ## to help developer understand
+                    else:
+                        continue
 
-                            ## Reverse order based on dataframe index (to match data output in worksheet)
-                            # df = df[df.columns[::-1]] #use this in case of inverted data values
-                            print(df)
-                            df.to_excel(writer,sheet_name=str(wb.active), startrow=location_list[i], index_label=None, index=False,header=False)
+                    ## Converion to dataframe
+                    if round(null_percentage,0) <= 50:
+                        df = pd.DataFrame(data)
 
+                        ## Reverse order based on dataframe index (to match data output in worksheet)
+                        # df = df[df.columns[::-1]] #use this in case of inverted data values
+                        print(df)
 
-
-                        else:
-                            continue
-
-
-                        i+=1
-                        j+=1
-
-
-                    # writer.save(create_new_sheet_name)
-                    writer.close()
-
+                        df.to_excel(writer,sheet_name=wb.sheetnames[sheets_counter], startrow=location_list[i], index_label=None, index=False,header=False)
+                    else:
+                        continue
+                    i+=1
+                    j+=1
+                # writer.save()
+                writer.close()
 
 
                 # Empty list to bring in new locations for another sheet
@@ -229,7 +220,7 @@ for item in old_directory_file:
 
 
         # Move to the next file
-        # counter += 1
-        break
+        counter += 1
+        # break
 
         print("\n============================================================")
